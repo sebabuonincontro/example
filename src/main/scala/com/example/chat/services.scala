@@ -13,13 +13,18 @@ import scala.concurrent.Future
 
 object ChatServices extends LazyLogging{
 
-  def addMessageService(m: Message) : Future[Message]= {
-    logger.info("message to create: " + m)
-    db.run(Database.messageTable returning Database.messageTable += m)
+  def addMessageService(message: Message) : Future[Message]= {
+    logger.info("message to create: " + message)
+    db.run(Database.messageTable returning Database.messageTable += message)
   }
 
   def refreshChat(chatId:Int) : Future[List[Message]] = {
-    logger.info("get char id: " + chatId)
+    logger.info("get chat id: " + chatId)
     db.run(Database.messageTable.filter(_.chatId === chatId).result) map (_.toList)
+  }
+
+  def createChat(chat: Chat) : Future[Chat] = {
+    logger.info("Creating chat: " + chat)
+    db.run(Database.chatTable returning Database.chatTable += chat)
   }
 }
