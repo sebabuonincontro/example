@@ -2,7 +2,7 @@ package com.example.chat
 
 import com.typesafe.scalalogging.LazyLogging
 import com.example.chat.config.DBConfig._
-import slick.driver.H2Driver.api._
+import slick.driver.HsqldbDriver.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future

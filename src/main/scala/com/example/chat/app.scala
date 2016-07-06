@@ -7,6 +7,7 @@ import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
 import com.example.chat.config.DBConfig
+import com.example.chat.config.DBConfig._
 import com.typesafe.scalalogging.LazyLogging
 import slick.driver.H2Driver.api._
 import spray.can.Http
@@ -18,20 +19,20 @@ import scala.concurrent.duration.FiniteDuration
   */
 object ChatRoomApp extends App with LazyLogging{
 
-  Database.chatTable.schema.create
-  Database.messageTable.schema.create
-  Database.userTable.schema.create
-
   val config = DBConfig.config
-  val host = config.getString("http.host")
-  val port = config.getInt("http.port")
+  db.run(Database.chatTable.schema.create)
+  db.run(Database.messageTable.schema.create)
+  db.run(Database.userTable.schema.create)
 
   implicit val system = ActorSystem("chat-management-service")
 
-    val api = system.actorOf(Props(new HttpActor()), "httpInterface")
+  val api = system.actorOf(Props(new HttpActor()), "httpInterface")
 
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(FiniteDuration(5,TimeUnit.SECONDS))
+
+  val host = config.getString("http.host")
+  val port = config.getInt("http.port")
 
   IO(Http).ask(Http.Bind(listener = api, interface = host, port = port))
     .mapTo[Http.Event]

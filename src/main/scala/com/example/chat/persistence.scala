@@ -1,6 +1,6 @@
 package com.example.chat
 
-import slick.driver.H2Driver.api._
+import slick.driver.HsqldbDriver.api._
 import slick.lifted.Tag
 /**
   * Created by bsbuon on 6/16/16.
