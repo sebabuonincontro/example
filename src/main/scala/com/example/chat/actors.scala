@@ -49,7 +49,7 @@ trait RestService extends HttpService
   val system = ActorSystem("ChatSystem")
   val chatMailBox = system.actorOf(Props(new ChatActor), name = "chatActor")
 
-  implicit val timeout = Timeout(FiniteDuration(5,TimeUnit.SECONDS))
+  implicit val timeout = Timeout(FiniteDuration(20,TimeUnit.SECONDS))
 
   val chatUrl = "chat"
   val messageUrl = "message"
@@ -58,10 +58,13 @@ trait RestService extends HttpService
     path(chatUrl / IntNumber){ id =>
       get {
         onComplete((chatMailBox ? CallChat(id)).mapTo[List[Message]]) {
-          case Success(list) => complete(StatusCodes.OK, list)
+          case Success(list) => {
+            logger.info("list ", list)
+            complete(StatusCodes.OK, list)
+          }
           case Failure(error) => {
             logger.error("Error: ", error)
-            complete(StatusCodes.ServerError, error)
+            complete(StatusCodes.InternalServerError, error.getMessage)
           }
         }
       }
@@ -75,7 +78,7 @@ trait RestService extends HttpService
             case Success(newMessage) => complete(StatusCodes.Created,newMessage)
             case Failure(error) => {
               logger.error("Error: ", error)
-              complete(StatusCodes.ServerError, error)
+              complete(StatusCodes.InternalServerError, error.getMessage)
             }
           }
         }
@@ -90,7 +93,7 @@ trait RestService extends HttpService
             case Success(newChat) => complete(StatusCodes.Created, newChat)
             case Failure(error) => {
               logger.error("Error: ", error)
-              complete(StatusCodes.ServerError, error)
+              complete(StatusCodes.InternalServerError, error.getMessage)
             }
           }
         }

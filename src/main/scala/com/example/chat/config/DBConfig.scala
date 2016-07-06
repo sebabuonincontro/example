@@ -1,7 +1,7 @@
 package com.example.chat.config
 
 import com.typesafe.config.ConfigFactory
-import slick.driver.H2Driver.api._
+import slick.driver.HsqldbDriver.api._
 /**
   * Created by bsbuon on 6/16/16.
   */
