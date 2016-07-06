@@ -26,7 +26,7 @@ libraryDependencies ++= {
     // -- database --
     ,"com.typesafe.slick"         %% "slick"               % "3.1.1"
     //H2 provider
-    ,"com.h2database"             % "h2"                   % "1.3.170" % "test"
+    ,"com.h2database"             % "h2"                   % "1.3.170"
     //json
     ,"org.json4s"                 %% "json4s-native" % "3.2.11"
     ,"org.json4s"                 %% "json4s-ext" % "3.2.11"
