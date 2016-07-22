@@ -1,13 +1,13 @@
 package com.example.chat.app
 
-import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 import akka.actor._
 import akka.io.IO
 import akka.pattern.ask
+import akka.routing.RoundRobinPool
 import akka.util.Timeout
-import com.example.chat.actors.{MessageRestService, ChatRestService}
+import com.example.chat.actors.{ChatRestService, MessageRestService}
 import com.example.chat.config.DBConfig
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
@@ -26,19 +26,16 @@ object ChatRoomApp extends App with LazyLogging{
 
   implicit val system = ActorSystem("chat-management-service")
 
-  val chatHandler = system.actorOf(Props(new ChatRestService()), "chat-rest-service")
-  val messageHandler = system.actorOf(Props(new MessageRestService()), "message-rest-service")
-
-  new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis)
+  val chatHandler = system.actorOf(RoundRobinPool(2).props(Props(new ChatRestService())), "chat-rest-service")
+  val messageHandler = system.actorOf(RoundRobinPool(1).props(Props(new MessageRestService())), "message-rest-service")
 
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(FiniteDuration(5,TimeUnit.SECONDS))
 
   val host = config.getString("http.host")
-  val port = config.getInt("http.port")
 
   //Fix this
-  IO(Http).ask(Http.Bind(listener = chatHandler, interface = host, port = port))
-  IO(Http).ask(Http.Bind(listener = messageHandler, interface = host, port = 8082))
+  IO(Http).ask(Http.Bind(listener = chatHandler, interface = host, port = 8090))
+  IO(Http).ask(Http.Bind(listener = messageHandler, interface = host, port = 8091))
 
 }
