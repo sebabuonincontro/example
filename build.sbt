@@ -28,9 +28,13 @@ libraryDependencies ++= {
     //H2 provider
     //,"com.h2database"             % "h2"                   % "1.3.170"
     //HsqlDB Driver
-    ,"org.hsqldb"                 % "hsqldb"               % "2.3.1"
+    //,"org.hsqldb"                 % "hsqldb"               % "2.3.1"
+    //PostgreSQL
+    ,"org.postgresql"             % "postgresql"     % "9.4-1206-jdbc4"
     //json
     ,"org.json4s"                 %% "json4s-native" % "3.2.11"
     ,"org.json4s"                 %% "json4s-ext" % "3.2.11"
     , "org.json4s"                %% "json4s-jackson" % "3.2.11"
 )}
+
+mainClass in Compile := Some("com.example.chat.app.ChatRoomApp")

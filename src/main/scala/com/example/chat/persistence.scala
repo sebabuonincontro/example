@@ -1,6 +1,8 @@
 package com.example.chat
 
-import slick.driver.HsqldbDriver.api._
+import java.sql.Timestamp
+
+import slick.driver.PostgresDriver.api._
 import slick.lifted.Tag
 /**
   * Created by bsbuon on 6/16/16.
@@ -17,15 +19,20 @@ class MessageTable(tag:Tag) extends Table[Message](tag, "messages"){
   def chatId = column[Int]("chat_id")
   def userId = column[Int]("user_id")
   def message = column[String]("message")
+  def createDate = column[Timestamp]("create_date")
 
-  override def * = (id.?, chatId, userId, message) <> (Message.tupled, Message.unapply)
+  override def * = (id.?, chatId, userId, message, createDate) <> (Message.tupled, Message.unapply)
 }
 
-class UserTable(tag:Tag) extends Table[User](tag, "users"){
+class UserTable(tag: Tag) extends Table[User](tag ,"users") {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def login = column[String]("login")
+  def firstName = column[String]("firstName")
+  def lastName = column[String]("lastName")
+  def email = column[String]("email")
+  def deletedAt = column[Timestamp]("deletedAt")
 
-  override def * = (id.?, login) <> (User.tupled, User.unapply)
+  override def * = (id.?, login, firstName, lastName, email, deletedAt) <> (User.tupled, User.unapply)
 }
 
 object Database {
