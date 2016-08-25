@@ -25,7 +25,7 @@ class MessageActor(implicit val ex: ExecutionContext) extends Actor {
   import akka.pattern.pipe
 
   override def receive: Receive = {
-    case AddMessage(message) => addMessageService(message) pipeTo sender
+    case AddMessage(message) => addMessage(message) pipeTo sender
   }
 }
 

@@ -18,7 +18,7 @@ import scala.concurrent.Future
 
 object ChatServices extends LazyLogging{
 
-  def addMessageService(message: Message) : Future[Message]= {
+  def addMessage(message: Message) : Future[Message]= {
     logger.info("message to create: " + message)
     db.run(Database.messageTable returning Database.messageTable += message.copy(createDate = new Timestamp(DateTime.now.getMillis)))
   }
