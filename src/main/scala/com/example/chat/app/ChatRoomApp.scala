@@ -7,7 +7,7 @@ import akka.io.IO
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
-import com.example.chat.actors.{ChatRestService, MessageRestService}
+import com.example.chat.actors.{UserRestService, ChatRestService, MessageRestService}
 import com.example.chat.config.DBConfig
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
@@ -26,8 +26,9 @@ object ChatRoomApp extends App with LazyLogging{
 
   implicit val system = ActorSystem("chat-management-service")
 
-  val chatHandler = system.actorOf(RoundRobinPool(2).props(Props(new ChatRestService())), "chat-rest-service")
-  val messageHandler = system.actorOf(RoundRobinPool(1).props(Props(new MessageRestService())), "message-rest-service")
+  val chatHandler = system.actorOf(RoundRobinPool(1).props(Props(new ChatRestService())), "chat-rest-service")
+  val messageHandler = system.actorOf(RoundRobinPool(2).props(Props(new MessageRestService())), "message-rest-service")
+  val userHandler = system.actorOf(RoundRobinPool(1).props(Props(new UserRestService)), "user-rest-service")
 
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(FiniteDuration(5,TimeUnit.SECONDS))
@@ -37,5 +38,6 @@ object ChatRoomApp extends App with LazyLogging{
   //Fix this
   IO(Http).ask(Http.Bind(listener = chatHandler, interface = host, port = 8090))
   IO(Http).ask(Http.Bind(listener = messageHandler, interface = host, port = 8091))
+  IO(Http).ask(Http.Bind(listener = userHandler, interface = host, port = 8092))
 
 }

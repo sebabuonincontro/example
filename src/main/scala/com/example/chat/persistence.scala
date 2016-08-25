@@ -35,6 +35,14 @@ class UserTable(tag: Tag) extends Table[User](tag ,"users") {
   override def * = (id.?, login, firstName, lastName, email, deletedAt) <> (User.tupled, User.unapply)
 }
 
+class UserChatTable(tag: Tag) extends Table[UserChat](tag, "user_chat") {
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def userId = column[Int]("user_id")
+  def chatId = column[Int]("chat_id")
+
+  override def * = (id.?, userId, chatId) <> (UserChat.tupled, UserChat.unapply)
+}
+
 object Database {
   val chatTable = TableQuery[ChatTable]
   val messageTable = TableQuery[MessageTable]

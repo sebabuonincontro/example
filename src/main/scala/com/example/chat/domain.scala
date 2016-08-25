@@ -27,3 +27,7 @@ case class User (
   lastName: String,
   email: String,
   deletedAt: Timestamp)
+
+case class UserChat(
+  userId: Int,
+  chatId: Int)
