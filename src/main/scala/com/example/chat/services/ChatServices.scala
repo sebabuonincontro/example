@@ -3,7 +3,7 @@ package com.example.chat.services
 import java.sql.Timestamp
 
 import com.example.chat.Database._
-import com.example.chat.config.DBConfig._
+import com.example.chat.config.Config._
 import com.example.chat.{ChatWithMessages, Chat, Database, Message}
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
@@ -26,12 +26,14 @@ object ChatServices extends LazyLogging{
   def refreshChat(chatId:Int) : Future[Option[ChatWithMessages]] = {
     logger.info("get chat id: " + chatId)
     val query = for {
-      chat <- chatTable if chat.id === chatId
-      messages <- messageTable if messages.chatId === chatId
+      (chat, messages) <- chatTable joinLeft messageTable on(_.id === _.chatId)
+      if chat.id === chatId
     }yield (chat, messages)
 
     db run query.result map { seq =>
-      Some(new ChatWithMessages(seq.head._1,seq.map(_._2).toList))
+      seq.groupBy(_._1).map{ grouped =>
+        ChatWithMessages(grouped._1,grouped._2.flatMap(_._2).toList)
+      }.headOption
     }
   }
 

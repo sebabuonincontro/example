@@ -3,7 +3,7 @@ package com.example.chat.services
 import java.sql.Timestamp
 
 import com.example.chat.{Database, Message}
-import com.example.chat.config.DBConfig._
+import com.example.chat.config.Config._
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import slick.driver.PostgresDriver.api._

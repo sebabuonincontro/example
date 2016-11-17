@@ -1,13 +1,12 @@
 package com.example.chat.actors
 
-import akka.actor.{Props, ActorSystem, Actor}
+import akka.actor.{Actor, Props}
 import akka.pattern.ask
 import com.example.chat.actors.chatMessages.{CallChat, CreateChat}
 import com.example.chat.services.ChatServices._
-import com.example.chat.{ChatWithMessages, Chat, Message, User}
+import com.example.chat.{Chat, ChatWithMessages, Message, User}
 import spray.http.StatusCodes
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
@@ -19,7 +18,7 @@ object chatMessages{
   case class CreateChat(chat: Chat)
 }
 
-class ChatActor(implicit val ex: ExecutionContext) extends Actor {
+class ChatActor extends Actor {
 
   import akka.pattern.pipe
 
@@ -29,17 +28,18 @@ class ChatActor(implicit val ex: ExecutionContext) extends Actor {
   }
 }
 
-class ChatRestService extends HttpActor {
+trait ChatRestService {
 
-  val system = ActorSystem("chatSystem")
-  val chatMailBox = system.actorOf(Props(new ChatActor()), name = "chatActor")
+  self : MainActor =>
+
+  val chatMailBox = context.actorOf(Props(new ChatActor), name = "chatActor")
 
   val chatUrl = "chat"
 
   def refresh =
     path(chatUrl / IntNumber){ id =>
       get {
-        logger.info("call chat: " + id)
+        log.info("call chat: " + id)
         onComplete((chatMailBox ? CallChat(id)).mapTo[Option[ChatWithMessages]]) {
           case Success(value) => { value match {
               case Some(chat) => complete(StatusCodes.OK, chat)
@@ -47,7 +47,7 @@ class ChatRestService extends HttpActor {
             }
           }
           case Failure(error) => {
-            logger.error("Error: ", error)
+            log.error("Error: ", error)
             complete(StatusCodes.InternalServerError, error)
           }
         }
@@ -61,7 +61,7 @@ class ChatRestService extends HttpActor {
           onComplete((chatMailBox ? CreateChat(chat)).mapTo[Chat]) {
             case Success(newChat) => complete(StatusCodes.Created, newChat)
             case Failure(error) => {
-              logger.error("Error: ", error)
+              log.error("Error: ", error)
               complete(StatusCodes.InternalServerError, error)
             }
           }
@@ -69,5 +69,5 @@ class ChatRestService extends HttpActor {
       }
     }
 
-  override def route = refresh ~ createChat
+  val chatRoute = refresh ~ createChat
 }

@@ -3,7 +3,7 @@ package com.example.chat.actors
 import spray.http.StatusCodes
 
 import scala.util.{Failure, Success}
-import akka.actor.{Props, ActorSystem, Actor}
+import akka.actor.{Props, Actor}
 import com.example.chat.User
 import com.example.chat.actors.userMessage._
 import spray.routing.Route
@@ -19,6 +19,7 @@ import scala.concurrent.ExecutionContext
 object userMessage {
   case class CreateUser(user: User)
   case class UpdateUser(user: User)
+  case class GetUserBy(id: Int)
 }
 
 class UserActor(implicit val ex: ExecutionContext) extends Actor {
@@ -31,12 +32,14 @@ class UserActor(implicit val ex: ExecutionContext) extends Actor {
   }
 }
 
-class UserRestService extends HttpActor {
+trait UserRestService {
 
-  val system = ActorSystem("userSystem")
-  val userMailBox = system.actorOf(Props(new UserActor()), name = "userActor")
+  self : MainActor =>
+
+  val userMailBox = context.actorOf(Props(new UserActor()), name = "userActor")
 
   val userPath = "user"
+  val chatPath = "chat"
 
   def create =
     path(userPath){
@@ -45,7 +48,7 @@ class UserRestService extends HttpActor {
           onComplete((userMailBox ? CreateUser(user)).mapTo[User]){
             case Success(value) => complete(StatusCodes.Created, value)
             case Failure(error) => {
-              logger.error("Error: ", error)
+              log.error("Error: ", error)
               complete(StatusCodes.InternalServerError, error)
             }
           }
@@ -66,6 +69,5 @@ class UserRestService extends HttpActor {
       }
     }
 
-
-  override def route: Route = create
+  val userRoute: Route = create ~ modify
 }

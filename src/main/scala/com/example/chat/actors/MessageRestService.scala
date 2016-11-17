@@ -1,14 +1,12 @@
 package com.example.chat.actors
 
-import akka.actor.{Props, ActorSystem, Actor}
+import akka.actor.{Actor, Props}
+import akka.pattern.ask
 import com.example.chat.Message
-import com.example.chat.actors.Messages.AddMessage
 import com.example.chat.services.ChatServices._
 import spray.http.StatusCodes
 import spray.routing.Route
-import akka.pattern.ask
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
@@ -16,11 +14,9 @@ import scala.util.{Failure, Success}
   * Created by bsbuon on 7/22/16.
   */
 
-object Messages {
-  case class AddMessage(message: Message)
-}
+case class AddMessage(message: Message)
 
-class MessageActor(implicit val ex: ExecutionContext) extends Actor {
+object MessageActor extends Actor {
 
   import akka.pattern.pipe
 
@@ -29,22 +25,23 @@ class MessageActor(implicit val ex: ExecutionContext) extends Actor {
   }
 }
 
-class MessageRestService extends HttpActor{
+trait MessageRestService {
 
-  val system = ActorSystem("messageSystem")
-  val messageMailBox = system.actorOf(Props(new MessageActor()), name = "messageActor")
+  self : MainActor =>
+
+    val messageMailBox = context.actorOf(Props(MessageActor), name = "messageActor")
 
   val messageUrl = "messages"
 
   def addMessage =
     path(messageUrl){
       post{
-        logger.info("create message ...")
+        log.info("create message ...")
         entity(as[Message]){ message =>
           onComplete((messageMailBox ? AddMessage(message)).mapTo[Message]) {
             case Success(newMessage) => complete(StatusCodes.Created,newMessage)
             case Failure(error) => {
-              logger.error("Error: ", error)
+              log.error("Error: ", error)
               complete(StatusCodes.InternalServerError, error)
             }
           }
@@ -52,6 +49,13 @@ class MessageRestService extends HttpActor{
       }
     }
 
+  def getMessage =
+    path(messageUrl / IntNumber){ messageId =>
+      get {
+        complete(StatusCodes.OK, messageId)
+      }
+    }
 
-  override def route: Route = addMessage
+
+  val messageRoute: Route = addMessage ~ getMessage
 }
