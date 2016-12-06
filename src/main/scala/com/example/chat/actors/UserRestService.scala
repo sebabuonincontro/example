@@ -3,14 +3,14 @@ package com.example.chat.actors
 import spray.http.StatusCodes
 
 import scala.util.{Failure, Success}
-import akka.actor.{Props, Actor}
-import com.example.chat.User
+import akka.actor.{Actor, Props}
+import com.example.chat.{MicroServiceJsonSupport, User}
 import com.example.chat.actors.userMessage._
 import spray.routing.Route
 import akka.pattern.ask
 import com.example.chat.services.UserServices._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
 
 /**
@@ -32,7 +32,7 @@ class UserActor(implicit val ex: ExecutionContext) extends Actor {
   }
 }
 
-trait UserRestService {
+trait UserRestService extends MicroServiceJsonSupport {
 
   self : MainActor =>
 

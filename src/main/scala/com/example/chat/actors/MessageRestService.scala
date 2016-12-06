@@ -2,7 +2,7 @@ package com.example.chat.actors
 
 import akka.actor.{Actor, Props}
 import akka.pattern.ask
-import com.example.chat.Message
+import com.example.chat.{Message, MicroServiceJsonSupport}
 import com.example.chat.services.ChatServices._
 import spray.http.StatusCodes
 import spray.routing.Route
@@ -25,7 +25,7 @@ object MessageActor extends Actor {
   }
 }
 
-trait MessageRestService {
+trait MessageRestService extends MicroServiceJsonSupport {
 
   self : MainActor =>
 
@@ -36,8 +36,8 @@ trait MessageRestService {
   def addMessage =
     path(messageUrl){
       post{
-        log.info("create message ...")
         entity(as[Message]){ message =>
+          log.info("create message ...")
           onComplete((messageMailBox ? AddMessage(message)).mapTo[Message]) {
             case Success(newMessage) => complete(StatusCodes.Created,newMessage)
             case Failure(error) => {

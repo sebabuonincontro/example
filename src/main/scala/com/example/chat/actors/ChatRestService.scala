@@ -4,7 +4,7 @@ import akka.actor.{Actor, Props}
 import akka.pattern.ask
 import com.example.chat.actors.chatMessages.{CallChat, CreateChat}
 import com.example.chat.services.ChatServices._
-import com.example.chat.{Chat, ChatWithMessages, Message, User}
+import com.example.chat._
 import spray.http.StatusCodes
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,7 +28,7 @@ class ChatActor extends Actor {
   }
 }
 
-trait ChatRestService {
+trait ChatRestService extends MicroServiceJsonSupport {
 
   self : MainActor =>
 

@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit._
 
 import akka.actor.{Actor, ActorLogging}
 import akka.util.Timeout
-import com.example.chat.MicroServiceJsonSupport
 import spray.routing._
 
 /**
@@ -13,18 +12,18 @@ import spray.routing._
 class MainActor extends Actor
   with HttpService
   with ActorLogging
-  with MicroServiceJsonSupport
   with MessageRestService
   with ChatRestService
-  with UserRestService {
+  with UserRestService
+  with CsvRestService {
 
   implicit val actorRefFactory = context
 
-  implicit val  timeout = Timeout(10, SECONDS)
+  implicit val timeout = Timeout(10, SECONDS)
 
   override def receive: Receive = runRoute(route)
 
-  def route: Route = messageRoute ~ chatRoute ~ userRoute
+  def route: Route = messageRoute ~ chatRoute ~ userRoute ~ csvRoute
 
 }
 
