@@ -17,4 +17,7 @@ object UserServices {
 
   def updateUser(user: User) : Future[Boolean] =
     db.run(Database.userTable.update(user)) map (_ > 0)
+
+  def listUsers() : Future[Seq[User]] =
+    db.run(Database.userTable.result)
 }

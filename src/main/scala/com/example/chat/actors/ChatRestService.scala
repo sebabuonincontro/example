@@ -2,7 +2,7 @@ package com.example.chat.actors
 
 import akka.actor.{Actor, Props}
 import akka.pattern.ask
-import com.example.chat.actors.chatMessages.{CallChat, CreateChat}
+import com.example.chat.actors.chatMessages.{CallChat, CreateChat, FindChatByUser}
 import com.example.chat.services.ChatServices._
 import com.example.chat._
 import spray.http.StatusCodes
@@ -16,6 +16,7 @@ object chatMessages{
   case class CallChat(chatId: Int)
   case class ViewChat(messages: List[Message])
   case class CreateChat(chat: Chat)
+  case class FindChatByUser(user : String)
 }
 
 class ChatActor extends Actor {
@@ -25,10 +26,12 @@ class ChatActor extends Actor {
   override def receive: Receive = {
     case CallChat(id) => refreshChat(id) pipeTo sender
     case CreateChat(chat) => createChat(chat) pipeTo sender
+    case FindChatByUser(user) => findByUser(user) pipeTo sender
   }
 }
 
-trait ChatRestService extends MicroServiceJsonSupport {
+trait ChatRestService extends MicroServiceJsonSupport
+  with Extractor {
 
   self : MainActor =>
 
@@ -47,7 +50,7 @@ trait ChatRestService extends MicroServiceJsonSupport {
             }
           }
           case Failure(error) => {
-            log.error("Error: ", error)
+            log.error("Error: {}", error)
             complete(StatusCodes.InternalServerError, error)
           }
         }
@@ -61,7 +64,7 @@ trait ChatRestService extends MicroServiceJsonSupport {
           onComplete((chatMailBox ? CreateChat(chat)).mapTo[Chat]) {
             case Success(newChat) => complete(StatusCodes.Created, newChat)
             case Failure(error) => {
-              log.error("Error: ", error)
+              log.error("Error: {}", error)
               complete(StatusCodes.InternalServerError, error)
             }
           }
@@ -69,5 +72,21 @@ trait ChatRestService extends MicroServiceJsonSupport {
       }
     }
 
-  val chatRoute = refresh ~ createChat
+  def findByUser =
+    path(chatUrl) {
+      get{
+        userExtractor { currentUser =>
+          onComplete((chatMailBox ? FindChatByUser(currentUser)).mapTo[Option[UserWithChat]]) {
+            case Success(Some(chats)) => complete(chats)
+            case Success(None) => complete(StatusCodes.NotFound)
+            case Failure(error) => {
+              log.error("Error: {}", error)
+              complete(StatusCodes.InternalServerError, error)
+            }
+          }
+        }
+      }
+    }
+
+  val chatRoute = refresh ~ createChat ~ findByUser
 }

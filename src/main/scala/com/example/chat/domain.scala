@@ -2,6 +2,10 @@ package com.example.chat
 
 import java.sql.Timestamp
 
+sealed trait Audit {
+  def createdBy: String
+}
+
 /**
   * Created by bsbuon on 5/6/16.
   */
@@ -26,7 +30,8 @@ case class User (
   firstName: String,
   lastName: String,
   email: String,
-  deletedAt: Timestamp)
+  deletedAt: Option[Timestamp],
+  createdBy: String) extends Audit
 
 case class UserChat(
   id: Option[Int],

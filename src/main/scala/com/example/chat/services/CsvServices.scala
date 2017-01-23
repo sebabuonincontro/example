@@ -2,6 +2,7 @@ package com.example.chat.services
 
 import com.example.chat.CsvLine
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -15,7 +16,7 @@ object CsvServices extends LazyLogging {
 
   val csv = ListBuffer[CsvLine]()
 
-  def loadCSV(fileName: String): Future[Seq[CsvLine]] = {
+  def loadCSV(fileName: String): Future[Boolean] = {
 
     if(csv.isEmpty) {
       val url = getClass.getResource("/" + fileName).getFile
@@ -34,7 +35,27 @@ object CsvServices extends LazyLogging {
       src.close()
     }
     logger.info("result count: " + csv.size)
-    Future{csv.toList}
+    Future{true}
+  }
+
+  def filter(policyId:Option[String], county:Option[String]): Future[Seq[CsvLine]] = {
+    logger.info("csv count: " + csv.length)
+    val result = (policyId, county) match {
+      case (Some(id), Some(co)) => csv.filter( c => c.policyID == id && c.county == co)
+      case (Some(id), None) => csv.filter(c => c.policyID == id)
+      case (None, Some(co)) => csv.filter(c => c.county == co)
+      case (None,None) => csv
+    }
+    logger.info("result count: " + result.length)
+    Future{result}
+  }
+
+  def sparkLoad(fileName: String) : Future[Long]= {
+    val conf = new SparkConf(true).setMaster("local[1]").setAppName("CSV")
+    val sc = new SparkContext(conf)
+    val csv = sc.textFile(getClass.getResource("/" + fileName).getPath, 2)
+
+    Future{csv.count}
   }
 
 }

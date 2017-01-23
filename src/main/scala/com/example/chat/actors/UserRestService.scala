@@ -13,6 +13,7 @@ import com.example.chat.services.UserServices._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
 
+import com.example.chat.Extractor
 /**
   * Created by bsbuon on 8/25/16.
   */
@@ -20,6 +21,7 @@ object userMessage {
   case class CreateUser(user: User)
   case class UpdateUser(user: User)
   case class GetUserBy(id: Int)
+  case class ListUsers()
 }
 
 class UserActor(implicit val ex: ExecutionContext) extends Actor {
@@ -29,10 +31,12 @@ class UserActor(implicit val ex: ExecutionContext) extends Actor {
   override def receive: Receive = {
     case CreateUser(user) => createUser(user) pipeTo sender
     case UpdateUser(user) => updateUser(user) pipeTo sender
+    case ListUsers => listUsers pipeTo sender
   }
 }
 
-trait UserRestService extends MicroServiceJsonSupport {
+trait UserRestService extends MicroServiceJsonSupport
+  with Extractor {
 
   self : MainActor =>
 
@@ -43,13 +47,15 @@ trait UserRestService extends MicroServiceJsonSupport {
 
   def create =
     path(userPath){
-      post{
-        entity(as[User]){ user =>
-          onComplete((userMailBox ? CreateUser(user)).mapTo[User]){
-            case Success(value) => complete(StatusCodes.Created, value)
-            case Failure(error) => {
-              log.error("Error: ", error)
-              complete(StatusCodes.InternalServerError, error)
+      userExtractor { currentUser =>
+        post{
+          entity(as[User]){ user =>
+            onComplete((userMailBox ? CreateUser(user.copy(createdBy = currentUser))).mapTo[User]){
+              case Success(value) => complete(StatusCodes.Created, value)
+              case Failure(error) => {
+                log.error("Error: {}", error)
+                complete(StatusCodes.InternalServerError)
+              }
             }
           }
         }
@@ -58,12 +64,17 @@ trait UserRestService extends MicroServiceJsonSupport {
 
   def modify =
     path(userPath / IntNumber){ id =>
-      put {
-        entity(as[User]){ user =>
-          onComplete((userMailBox ? UpdateUser(user)).mapTo[Boolean]){
-            case Success(true) => complete(StatusCodes.OK)
-            case Success(false) => complete(StatusCodes.NotFound)
-            case Failure(error) => complete(StatusCodes.InternalServerError, error)
+      userExtractor { currentUser =>
+        put {
+          entity(as[User]){ user =>
+            onComplete((userMailBox ? UpdateUser(user.copy(id = Some(id), createdBy = currentUser))).mapTo[Boolean]){
+              case Success(true) => complete(StatusCodes.OK)
+              case Success(false) => complete(StatusCodes.NotFound)
+              case Failure(error) => {
+                log.error("Error: {}", error)
+                complete(StatusCodes.InternalServerError)
+              }
+            }
           }
         }
       }

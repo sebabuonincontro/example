@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import akka.actor._
 import akka.io.IO
 import akka.pattern.ask
-import akka.routing.{RoundRobinPool, RoundRobinRoutingLogic}
+import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import com.example.chat.actors.MainActor
 import com.example.chat.config.Config
@@ -14,15 +14,17 @@ import spray.can.Http
 
 import scala.concurrent.duration.FiniteDuration
 
+
 /**
   * Created by bsbuon on 5/9/16.
   */
 object ChatRoomApp extends App with LazyLogging{
 
   val config = Config.config
-//  db.run(Database.chatTable.schema.create)
-//  db.run(Database.messageTable.schema.create)
-//  db.run(Database.userTable.schema.create)
+
+  //db.run(chatTable.schema.create)
+  //db.run(messageTable.schema.create)
+  //db.run(userTable.schema.create)
 
   implicit val timeout = Timeout(FiniteDuration(10, TimeUnit.SECONDS))
   implicit val system = ActorSystem("chat-management-service")

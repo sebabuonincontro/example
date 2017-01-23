@@ -19,7 +19,7 @@ class MainActor extends Actor
 
   implicit val actorRefFactory = context
 
-  implicit val timeout = Timeout(10, SECONDS)
+  implicit val timeout = Timeout(5, SECONDS)
 
   override def receive: Receive = runRoute(route)
 

@@ -35,6 +35,7 @@ libraryDependencies ++= {
     ,"org.json4s"                 %% "json4s-native" % "3.2.11"
     ,"org.json4s"                 %% "json4s-ext" % "3.2.11"
     , "org.json4s"                %% "json4s-jackson" % "3.2.11"
+    , "org.apache.spark" % "spark-core_2.11" % "1.6.1"
 )}
 
 mainClass in Compile := Some("com.example.chat.app.ChatRoomApp")

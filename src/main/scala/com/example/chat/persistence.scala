@@ -30,9 +30,10 @@ class UserTable(tag: Tag) extends Table[User](tag ,"users") {
   def firstName = column[String]("firstName")
   def lastName = column[String]("lastName")
   def email = column[String]("email")
-  def deletedAt = column[Timestamp]("deletedAt")
+  def deletedAt = column[Option[Timestamp]]("deletedAt")
+  def createdBy = column[String]("createdBy")
 
-  override def * = (id.?, login, firstName, lastName, email, deletedAt) <> (User.tupled, User.unapply)
+  override def * = (id.?, login, firstName, lastName, email, deletedAt, createdBy) <> (User.tupled, User.unapply)
 }
 
 class UserChatTable(tag: Tag) extends Table[UserChat](tag, "user_chat") {
@@ -47,4 +48,5 @@ object Database {
   val chatTable = TableQuery[ChatTable]
   val messageTable = TableQuery[MessageTable]
   val userTable = TableQuery[UserTable]
+  val userChatTable = TableQuery[UserChatTable]
 }
